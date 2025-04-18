@@ -162,6 +162,7 @@
 </head>
 <body>
   <header>スタンプラリー</header>
+<div id="spot-label" style="font-size:1.2rem; color:#4B2E2B; margin-bottom:0.5rem;"></div>
   <div class="container" id="container">
     <div class="progress-bar-container"><div class="progress-bar" id="progressBar"></div></div>
     <div class="cleared-label" id="cleared">
@@ -176,6 +177,7 @@
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const spot = urlParams.get('spot') || 'A';
+document.getElementById("spot-label").textContent = "スポット" + spot;
     const requiredTouches = { A: 10, B: 9, C: 8, D: 2, E: 1 }[spot] || 10;
     const storageKey = 'stamp_spot_' + spot;
     const clearedLabel = document.getElementById("cleared");
