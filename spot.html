@@ -57,6 +57,24 @@
       height: auto;
       display: block;
     }
+    .particle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: rgba(255, 215, 0, 0.8);
+      border-radius: 50%;
+      animation: sparkle 1s ease-out forwards;
+    }
+    @keyframes sparkle {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--x), var(--y)) scale(0.5);
+        opacity: 0;
+      }
+    }
     footer {
       margin-top: 1rem;
       font-size: 1rem;
@@ -90,13 +108,37 @@
     let currentTouchCount = 0;
     let alreadyCleared = false;
 
+    const stampSound = new Audio("https://soundeffect-lab.info/sound/anime/mp3/hanko1.mp3");
+    const sparkleSound = new Audio("https://soundeffect-lab.info/sound/anime/mp3/sparkle.mp3");
+
+    function playParticles() {
+      for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        const angle = Math.random() * 2 * Math.PI;
+        const radius = 100 + Math.random() * 50;
+        particle.style.setProperty('--x', `${Math.cos(angle) * radius}px`);
+        particle.style.setProperty('--y', `${Math.sin(angle) * radius}px`);
+        particle.style.left = '50%';
+        particle.style.top = '50%';
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 1000);
+      }
+    }
+
     const startProgress = () => {
       let elapsed = 0;
       progressBar.style.width = "0%";
 
+      var vib = setInterval(() => {
+        if (navigator.vibrate) navigator.vibrate(100);
+      }, 200);
+
       timer = setInterval(() => {
         if (currentTouchCount < requiredTouches) {
-          cancelProgress();
+          clearInterval(timer);
+          clearInterval(vib);
+          progressBar.style.width = "0%";
           return;
         }
         elapsed += interval;
@@ -105,20 +147,17 @@
 
         if (elapsed >= duration) {
           clearInterval(timer);
-          timer = null;
+          clearInterval(vib);
           progressBar.style.width = "0%";
           clearedLabel.style.display = 'flex';
           footerMessage.textContent = 'スタンプを獲得しました！';
           localStorage.setItem(storageKey, 'true');
           alreadyCleared = true;
+          stampSound.play();
+          setTimeout(() => sparkleSound.play(), 300);
+          playParticles();
         }
       }, interval);
-    };
-
-    const cancelProgress = () => {
-      clearInterval(timer);
-      timer = null;
-      progressBar.style.width = "0%";
     };
 
     container.addEventListener("touchstart", (e) => {
@@ -130,9 +169,6 @@
 
     container.addEventListener("touchend", (e) => {
       currentTouchCount = e.touches.length;
-      if (currentTouchCount < requiredTouches && timer) {
-        cancelProgress();
-      }
     });
 
     if (localStorage.getItem(storageKey)) {
